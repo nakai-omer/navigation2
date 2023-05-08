@@ -157,11 +157,11 @@ class RewrittenYaml(launch.Substitution):
             return paths
         pn = p
         if p != "":
-            pn += '.'
+            pn += joinchar
         if isinstance(d, dict):
             for k in d:
                 v = d[k]
-                self.pathify(v, pn + k, paths, joinchar=joinchar)
+                self.pathify(v, str(pn) + str(k), paths, joinchar=joinchar)
         elif isinstance(d, list):
             for idx, e in enumerate(d):
                 self.pathify(e, pn + str(idx), paths, joinchar=joinchar)

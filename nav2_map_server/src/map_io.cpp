@@ -508,6 +508,9 @@ void tryWriteMapToFile(
     const int file_name_index = mapdatafile.find_last_of("/\\");
     std::string image_name = mapdatafile.substr(file_name_index + 1);
 
+    const int file_name_index = mapdatafile.find_last_of("/\\");
+    std::string image_name = mapdatafile.substr(file_name_index + 1);
+
     YAML::Emitter e;
     e << YAML::Precision(3);
     e << YAML::BeginMap;

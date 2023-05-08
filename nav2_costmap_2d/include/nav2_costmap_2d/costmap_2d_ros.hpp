@@ -38,6 +38,7 @@
 #ifndef NAV2_COSTMAP_2D__COSTMAP_2D_ROS_HPP_
 #define NAV2_COSTMAP_2D__COSTMAP_2D_ROS_HPP_
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
@@ -73,22 +74,35 @@ class Costmap2DROS : public nav2_util::LifecycleNode
 {
 public:
   /**
+   * @brief  Constructor for the wrapper
+   */
+  Costmap2DROS();
+
+  /**
    * @brief  Constructor for the wrapper, the node will
    * be placed in a namespace equal to the node's name
    * @param name Name of the costmap ROS node
+   * @param use_sim_time Whether to use simulation or real time
    */
-  explicit Costmap2DROS(const std::string & name);
+  explicit Costmap2DROS(const std::string & name, const bool & use_sim_time = false);
 
   /**
    * @brief  Constructor for the wrapper
    * @param name Name of the costmap ROS node
    * @param parent_namespace Absolute namespace of the node hosting the costmap node
    * @param local_namespace Namespace to append to the parent namespace
+   * @param use_sim_time Whether to use simulation or real time
    */
   explicit Costmap2DROS(
     const std::string & name,
     const std::string & parent_namespace,
-    const std::string & local_namespace);
+    const std::string & local_namespace,
+    const bool & use_sim_time);
+
+  /**
+   * @brief Common initialization for constructors
+   */
+  void init();
 
   /**
    * @brief A destructor
@@ -306,7 +320,9 @@ protected:
   // Publishers and subscribers
   rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::PolygonStamped>::SharedPtr
     footprint_pub_;
-  std::unique_ptr<Costmap2DPublisher> costmap_publisher_{nullptr};
+  std::unique_ptr<Costmap2DPublisher> costmap_publisher_;
+
+  std::vector<std::unique_ptr<Costmap2DPublisher>> layer_publishers_;
 
   rclcpp::Subscription<geometry_msgs::msg::Polygon>::SharedPtr footprint_sub_;
   rclcpp::Subscription<rcl_interfaces::msg::ParameterEvent>::SharedPtr parameter_sub_;
@@ -329,9 +345,9 @@ protected:
    */
   void mapUpdateLoop(double frequency);
   bool map_update_thread_shutdown_{false};
-  bool stop_updates_{false};
-  bool initialized_{false};
-  bool stopped_{true};
+  std::atomic<bool> stop_updates_{false};
+  std::atomic<bool> initialized_{false};
+  std::atomic<bool> stopped_{true};
   std::unique_ptr<std::thread> map_update_thread_;  ///< @brief A thread for updating the map
   rclcpp::Time last_publish_{0, 0, RCL_ROS_TIME};
   rclcpp::Duration publish_cycle_{1, 0};
